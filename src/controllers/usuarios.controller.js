@@ -34,12 +34,14 @@ export const getUsuario = async (req, res) =>{
 
 export const postUsuarios = async (req,res) =>{
 try {
-    const {name,salary} = req.body
-const [rows] = await pool.query('INSERT INTO usu_usuario (strNombreUsuario, strContraseña,idTipoUsuario,idTipoEstado) VALUES (?, ?)', [name, salary])
+    const {strNombreUsuario,strContraseña,idTipoUsuario,idTipoEstado} = req.body
+const [rows] = await pool.query('INSERT INTO usu_usuario (strNombreUsuario, strContraseña,idTipoUsuario,idTipoEstado) VALUES (?,?,?,?)', [strNombreUsuario,strContraseña,idTipoUsuario,idTipoEstado])
 res.send({
-    id: rows.insertId,
-    name,
-    salary
+    idUsuario: rows.idUsuario,
+    strNombreUsuario,
+    strContraseña,
+    idTipoUsuario,
+    idTipoEstado
 })
 } catch (error) {
     return res.status(500).json({
