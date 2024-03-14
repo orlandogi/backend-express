@@ -4,7 +4,7 @@ import { pool } from "../db.js";
 export const getUsuarios = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT usu.strNombreUsuario, usu.strContraseña, tipo.strNombre AS TipoUsuario, estado.strEstado AS Estado FROM usu_usuario usu JOIN usu_cat_tipo_usuario tipo ON usu.idTipoUsuario = tipo.idTipoUsuario JOIN usu_cat_estado_usuario estado ON usu.idTipoEstado = estado.idEstadoUsuario"
+      "SELECT usu.strNombreUsuario, usu.strContraseña, tipo.strNombre AS TipoUsuario, estado.strEstado AS Estado FROM usu_usuario usu JOIN usu_cat_tipo_usuario tipo ON usu.idTipoUsuario = tipo.id JOIN usu_cat_estado_usuario estado ON usu.idTipoEstado = estado.id"
     );
     res.json(rows);
   } catch (error) {
@@ -19,7 +19,7 @@ export const getUsuario = async (req, res) => {
   try {
     console.log(req.params.id);
     const [rows] = await pool.query(
-      "SELECT usu.strNombreUsuario, usu.strContraseña, tipo.strNombre AS TipoUsuario, tipo.strDescripcion AS Descripcion, estado.strEstado AS Estado FROM usu_usuario usu JOIN usu_cat_tipo_usuario tipo ON usu.idTipoUsuario = tipo.idTipoUsuario JOIN usu_cat_estado_usuario estado ON usu.idTipoEstado = estado.idEstadoUsuario where idUsuario = ? ",
+      "SELECT usu.strNombreUsuario, usu.strContraseña, tipo.strNombre AS TipoUsuario, tipo.strDescripcion AS Descripcion, estado.strEstado AS Estado FROM usu_usuario usu JOIN usu_cat_tipo_usuario tipo ON usu.idTipoUsuario = tipo.id JOIN usu_cat_estado_usuario estado ON usu.idTipoEstado = estado.id where idTipoUsuario = ? ",
       [req.params.id]
     );
     console.log(rows);
@@ -34,6 +34,20 @@ export const getUsuario = async (req, res) => {
     });
   }
 };
+
+export const getDescripcionUsuario = async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT strDescripcion FROM usu_cat_tipo_usuario"
+      );
+    res.json(rows);
+  } catch (error) {
+    return res.status(500).json({
+      message: "Algo salio mal",
+    });
+  }
+};
+
 
 export const postUsuarios = async (req, res) => {
   try {

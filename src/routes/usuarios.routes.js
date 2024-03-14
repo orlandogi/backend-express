@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {getUsuarios,getUsuario, postUsuarios, updateUsuarios,deleteUsuarios } from "../controllers/usuarios.controller.js";
+import {getUsuarios,getUsuario, postUsuarios, updateUsuarios,deleteUsuarios, getDescripcionUsuario } from "../controllers/usuarios.controller.js";
 
 const router = Router()
 
@@ -7,6 +7,8 @@ const router = Router()
 router.get('/usuarios',getUsuarios)
 
 router.get('/usuario/:id',getUsuario)
+
+router.get('/tipoUsuario', getDescripcionUsuario)
 
 router.post('/usuario',postUsuarios)
 
