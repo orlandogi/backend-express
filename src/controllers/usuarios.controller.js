@@ -4,7 +4,7 @@ import { pool } from "../db.js";
 export const getUsuarios = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT usu.strNombreUsuario, usu.strContraseña, tipo.strNombre AS TipoUsuario, estado.strEstado AS Estado FROM usu_usuario usu JOIN usu_cat_tipo_usuario tipo ON usu.idTipoUsuario = tipo.id JOIN usu_cat_estado_usuario estado ON usu.idTipoEstado = estado.id"
+      "SELECT usu.id,usu.strNombreUsuario, usu.strContraseña, tipo.strNombre AS TipoUsuario, estado.strEstado AS Estado FROM usu_usuario usu JOIN usu_cat_tipo_usuario tipo ON usu.idTipoUsuario = tipo.id JOIN usu_cat_estado_usuario estado ON usu.idTipoEstado = estado.id"
     );
     res.json(rows);
   } catch (error) {
@@ -101,7 +101,7 @@ export const updateUsuarios = async (req, res) => {
 // Modificar delete
 export const deleteUsuarios = async (req, res) => {
   try {
-    const [result] = await pool.query("DELETE FROM employee where id = ?", [
+    const [result] = await pool.query("DELETE FROM usu_usuario where id = ?", [
       req.params.id,
     ]);
 
