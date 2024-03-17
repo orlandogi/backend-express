@@ -75,10 +75,10 @@ export const postUsuarios = async (req, res) => {
 export const updateUsuarios = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, salary } = req.body;
+    const { strNombreUsuario, strContraseña, idTipoUsuario, idTipoEstado } = req.body;
     const [result] = await pool.query(
-      "UPDATE employee SET name = IFNULL(?, name), salary = IFNULL(?, salary) where id = ?",
-      [name, salary, id]
+      "update usu_usuario  set strNombreUsuario = ?, strContraseña = ?, idTipoUsuario = ?, idTipoEstado= ? where id = ?",
+      [strNombreUsuario, strContraseña, idTipoUsuario, idTipoEstado, id]
     );
 
     if (result.affectedRows === 0)
@@ -86,7 +86,7 @@ export const updateUsuarios = async (req, res) => {
         message: "Employee not found",
       });
 
-    const [rows] = await pool.query("Select * from employee where id = ?", [
+    const [rows] = await pool.query("Select * from usu_usuario where id = ?", [
       id,
     ]);
 
