@@ -89,7 +89,7 @@ export const updateUsuarios = async (req, res) => {
 
     if (result.affectedRows === 0)
       return res.status(404).json({
-        message: "Employee not found",
+        message: "No se encontro el usuario",
       });
 
     const [rows] = await pool.query("Select * from usu_usuario where id = ?", [
@@ -113,11 +113,14 @@ export const deleteUsuarios = async (req, res) => {
 
     if (result.affectedRows <= 0)
       return res.status(404).json({
-        message: "Employee not found",
+        message: "No se encontro el usuario",
       });
 
-    console.log(result);
-    res.sendStatus(204);
+ 
+    res.send({
+      message: 'Se elimino correctamente'
+      
+    })
   } catch (error) {
     return res.status(500).json({
       message: "Algo salio mal",
