@@ -51,14 +51,17 @@ export const getDescripcionUsuario = async (req, res) => {
 
 export const postUsuarios = async (req, res) => {
   try {
-    const { strNombreUsuario, strContraseña, idTipoUsuario, idTipoEstado } =
-      req.body;
-    const [rows] = await pool.query(
-      "INSERT INTO usu_usuario (strNombreUsuario, strContraseña,idTipoUsuario,idTipoEstado) VALUES (?,?,?,?)",
-      [strNombreUsuario, strContraseña, idTipoUsuario, idTipoEstado]
-    );
+    const { strNombreUsuario, strContraseña, idTipoUsuario, idTipoEstado } = req.body;
+
+    // Llamar al stored procedure
+    const [result] = await pool.query('CALL InsertarUsuario(?, ?, ?, ?, @message)', [strNombreUsuario, strContraseña, idTipoUsuario, idTipoEstado]);
+
+    // Obtener el mensaje del stored procedure
+    const [rows] = await pool.query('SELECT @message AS message');
+    const message = rows[0].message;
+
     res.send({
-      idUsuario: rows.idUsuario,
+      message: message,
       strNombreUsuario,
       strContraseña,
       idTipoUsuario,
@@ -66,10 +69,13 @@ export const postUsuarios = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({
-      message: "Algo salio mal",
+      message: "Algo salió mal",
+      error: error.message
     });
   }
 };
+
+
 
 // Modificar Update
 export const updateUsuarios = async (req, res) => {
