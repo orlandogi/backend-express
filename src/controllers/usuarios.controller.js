@@ -19,7 +19,7 @@ export const getUsuario = async (req, res) => {
   try {
     console.log(req.params.id);
     const [rows] = await pool.query(
-      "SELECT usu.strNombreUsuario, usu.strContraseña, tipo.strNombre AS TipoUsuario, tipo.strDescripcion AS Descripcion, estado.strEstado AS Estado FROM usu_usuario usu JOIN usu_cat_tipo_usuario tipo ON usu.idTipoUsuario = tipo.id JOIN usu_cat_estado_usuario estado ON usu.idTipoEstado = estado.id where idTipoUsuario = ? ",
+      "SELECT strNombreUsuario, strContraseña, idTipoUsuario, idTipoEstado FROM usu_usuario WHERE id = ?",
       [req.params.id]
     );
     console.log(rows);
@@ -83,8 +83,8 @@ export const updateUsuarios = async (req, res) => {
     const { id } = req.params;
     const { strNombreUsuario, strContraseña, idTipoUsuario, idTipoEstado } = req.body;
     const [result] = await pool.query(
-      "update usu_usuario  set strNombreUsuario = ?, strContraseña = ?, idTipoUsuario = ?, idTipoEstado= ? where id = ?",
-      [strNombreUsuario, strContraseña, idTipoUsuario, idTipoEstado, id]
+      "CALL ActualizarUsuario(?, ?, ?, ?,?, @message)",
+      [id, strNombreUsuario, strContraseña, idTipoUsuario, idTipoEstado]
     );
 
     if (result.affectedRows === 0)
@@ -92,12 +92,17 @@ export const updateUsuarios = async (req, res) => {
         message: "No se encontro el usuario",
       });
 
-    const [rows] = await pool.query("Select * from usu_usuario where id = ?", [
-      id,
-    ]);
+    const [rows] = await pool.query('SELECT @message AS message');
+    const message = rows[0].message;
 
-    res.json(rows[0]);
-  } catch (error) {
+
+    res.send({
+      message: message,
+      strNombreUsuario,
+      strContraseña,
+      idTipoUsuario,
+      idTipoEstado,
+    });  } catch (error) {
     return res.status(500).json({
       message: "Algo salio mal",
     });
