@@ -195,27 +195,140 @@ export const getGenero = async (req, res) => {
   }
 };
 
+export const getPeliculas = async (req, res) => {
+  try {
+    // Consulta para obtener todos los registros de películas con sus detalles
+    const query = `
+        SELECT
+            peli_peliculas.id,
+            peli_peliculas.strNombre,
+            peli_peliculas.strSinopsis,
+            peli_peliculas.intDuracion,
+            peli_peliculas.bloImagen,
+            peli_cat_estados.strEstado,
+            GROUP_CONCAT(peli_cat_genero.strGenero) AS generos
+        FROM
+            peli_peliculas
+            INNER JOIN peli_cat_estados ON peli_peliculas.idEstadoPelicula = peli_cat_estados.id
+            LEFT JOIN peli_generos ON peli_peliculas.id = peli_generos.idPelicula
+            LEFT JOIN peli_cat_genero ON peli_generos.idGeneroPelicula = peli_cat_genero.id
+        GROUP BY
+            peli_peliculas.id;
+    `;
+    
+    // Ejecutar la consulta
+    const [result] = await pool.query(query);
+
+    // Si no se encontraron películas
+    if (result.length === 0) {
+        return res.status(404).send('No se encontraron películas');
+    }
+
+    // Mapear los resultados para procesar las imágenes
+    const peliculas = result.map(pelicula => {
+        return {
+            id: pelicula.id,
+            strNombre: pelicula.strNombre,
+            strSinopsis: pelicula.strSinopsis,
+            intDuracion: pelicula.intDuracion,
+            bloImagen: Buffer.from(pelicula.bloImagen).toString('base64'), // Convertir la imagen a base64 para enviarla al cliente
+            strEstado: pelicula.strEstado,
+            generos: pelicula.generos ? pelicula.generos.split(',') : [] // Convertir la lista de géneros en un array
+        };
+    });
+    
+    // Enviar la respuesta con los datos de las películas
+    res.json(peliculas);
+
+} catch (error) {
+    console.error('Error al obtener las películas:', error);
+    res.status(500).send('Error interno del servidor');
+}
+};
+
 export const getPelicula = async (req, res) => {
   try {
       const { id } = req.params;
       
-      // Consulta para obtener la imagen de la película por su ID
       const [result] = await pool.query('SELECT bloImagen FROM peli_peliculas WHERE id = ?', [id]);
 
-      // Si no se encuentra la película con el ID especificado
       if (result.length === 0) {
           return res.status(404).send('No se encontró ninguna película con el ID especificado');
       }
 
-      // Selecciona la imagen de la fila obtenida
       const { bloImagen } = result[0];
       
-      // Envía la imagen al cliente
-      res.set('Content-Type', 'image'); // Ajusta el tipo de contenido según sea necesario
+      res.set('Content-Type', 'image'); 
       res.send(bloImagen);
 
   } catch (error) {
       console.error('Error al obtener la imagen de la película:', error);
       res.status(500).send('Error interno del servidor');
+  }
+};
+
+export const deletePelicula = async (req, res) => {
+  try {
+    const [result] = await pool.query("DELETE FROM peli_peliculas where id = ? ", [
+      req.params.id,
+    ]);
+
+    if (result.affectedRows <= 0)
+      return res.status(404).json({
+        message: "No se encontro el usuario",
+      });
+
+ 
+    res.send({
+      message: 'Se elimino correctamente'
+      
+    })
+  } catch (error) {
+    return res.status(500).json({
+      message: "Algo salio mal",
+    });
+  }
+};
+
+export const updatePelicula = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { strNombre, strSinopsis, intDuracion, idEstadoPelicula, generos } = req.body;
+    const { imagen } = req.body;
+    if(imagen === 'no'){
+      const [confirmar] = await pool.query("SELECT COUNT(*) as 'Existen' FROM peli_peliculas WHERE (strNombre = ?) AND id != ?", [strNombre, id])
+      console.log('imagen no cambiada')
+      if(confirmar[0].Existen == 0){
+          const [result] = await pool.query('UPDATE peli_peliculas SET strNombre = ?, strSinopsis = ?, intDuracion = ?, idEstadoPelicula = ? WHERE id = ?', [strNombre, strSinopsis, intDuracion, idEstadoPelicula, id]);
+          const [removeGenres] = await pool.query('DELETE FROM peli_generos WHERE idPelicula = ?', [id])
+          for (const idGenero of generos) {
+            await pool.query('INSERT INTO peli_generos (idPelicula, idGeneroPelicula) VALUES (?, ?)', [id, idGenero]);
+          }
+          res.status(200).json({ message: 'Película actualizada exitosamente' });      
+    
+        }else{
+  return res.status(500).json({message: "La película ya esta registrada"});
+    }
+
+  }else{
+
+    const [confirmar2] = await pool.query("SELECT COUNT(*) as 'Existen' FROM peli_peliculas WHERE (strNombre = ?) AND id != ?", [strNombre, id])
+    console.log('imagen cambiada')
+    if(confirmar2[0].Existen == 0){
+      const imageData = fs.readFileSync(req.file.path);
+    const imageBuffer = Buffer.from(imageData);
+        const [result] = await pool.query('UPDATE peli_peliculas SET strNombre = ?, strSinopsis = ?, intDuracion = ?, bloImagen = ?, idEstadoPelicula = ? WHERE id = ?', [strNombre, strSinopsis, intDuracion, imageBuffer, idEstadoPelicula, id]);
+        const [removeGenres] = await pool.query('DELETE FROM peli_generos WHERE idPelicula = ?', [id])
+        for (const idGenero of generos) {
+          await pool.query('INSERT INTO peli_generos (idPelicula, idGeneroPelicula) VALUES (?, ?)', [id, idGenero]);
+        }
+        res.status(200).json({ message: 'Película actualizada exitosamente' });         
+  }else{
+    return res.status(500).json({message: "La película ya esta registrada"});
+  }
+  } 
+}catch (error) {
+    res.status(500).json({ message: 'Error al insertar la película' });
+    console.error(error);
   }
 };
