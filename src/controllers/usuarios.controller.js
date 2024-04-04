@@ -1,7 +1,11 @@
 import { pool } from "../db.js";
 import multer from 'multer'; 
 import fs from 'fs'; 
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 // Modificar get
 export const getUsuarios = async (req, res) => {
   try {
@@ -149,14 +153,14 @@ const upload = multer({ storage: storage });
 
 export const postPelicula = async (req, res) => {
   try {
-    const { strNombre, strSinopsis, intDuracion, idEstadoPelicula, generos } = req.body;
+    const { strNombre, strSinopsis, intDuracion, idEstadoPelicula, generos, nombreArchivo } = req.body;
     
     const imageData = fs.readFileSync(req.file.path);
     const imageBuffer = Buffer.from(imageData);
 
     const [result1] = await pool.query('SELECT strNombre FROM peli_peliculas where strNombre = ?', [strNombre]);
     if(result1.length == 0){
-      const [result] = await pool.query('INSERT INTO peli_peliculas (strNombre, strSinopsis, intDuracion, bloImagen, idEstadoPelicula) VALUES (?, ?, ?, ?, ?)', [strNombre, strSinopsis, intDuracion, imageBuffer, idEstadoPelicula]);
+      const [result] = await pool.query('INSERT INTO peli_peliculas (strNombre, strSinopsis, intDuracion, bloImagen, nombreArchivo, idEstadoPelicula) VALUES (?, ?, ?, ?, ?, ?)', [strNombre, strSinopsis, intDuracion, imageBuffer, nombreArchivo, idEstadoPelicula]);
 
       const idPelicula = result.insertId;
   
@@ -164,14 +168,16 @@ export const postPelicula = async (req, res) => {
         await pool.query('INSERT INTO peli_generos (idPelicula, idGeneroPelicula) VALUES (?, ?)', [idPelicula, idGenero]);
       }
       res.status(200).json({ message: 'Película insertada exitosamente' });
-    }else{
+    } else {
       return res.status(500).json({ message: 'Error al insertar la película' });
     }
 
   } catch (error) {
     console.error(error);
+    return res.status(500).json({ message: 'Error interno del servidor' });
   }
 };
+
 
 export const getGenero = async (req, res) => {
   const { genero } = req.query;
@@ -216,13 +222,7 @@ export const getPeliculas = async (req, res) => {
     
     // Ejecutar la consulta
     const [result] = await pool.query(query);
-
-    // Si no se encontraron películas
-    if (result.length === 0) {
-        return res.status(404).send('No se encontraron películas');
-    }
-
-    // Mapear los resultados para procesar las imágenes
+    
     const peliculas = result.map(pelicula => {
         return {
             id: pelicula.id,
@@ -267,31 +267,48 @@ export const getPelicula = async (req, res) => {
 
 export const deletePelicula = async (req, res) => {
   try {
-    const [result] = await pool.query("DELETE FROM peli_peliculas where id = ? ", [
+
+    // Obtener el nombre del archivo de imagen de la película eliminada
+    const [imageResult] = await pool.query("SELECT nombreArchivo FROM peli_peliculas WHERE id = ?", [
       req.params.id,
     ]);
 
-    if (result.affectedRows <= 0)
-      return res.status(404).json({
-        message: "No se encontro el usuario",
-      });
+    // Verificar si se encontró el nombre del archivo
+    if (imageResult && imageResult.length > 0 && imageResult[0].nombreArchivo) {
+      const imagePath = `uploads/${imageResult[0].nombreArchivo}`;
 
- 
-    res.send({
-      message: 'Se elimino correctamente'
-      
-    })
+      // Verificar si el archivo existe y eliminarlo
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      }
+    }
+
+    const [result] = await pool.query("DELETE FROM peli_peliculas WHERE id = ?", [
+      req.params.id,
+    ]);
+
+    if (result.affectedRows <= 0) {
+      return res.status(404).json({
+        message: "No se encontró la película",
+      });
+    }
+
+    res.json({
+      message: 'Película eliminada correctamente'
+    });
   } catch (error) {
+    console.error(error);
     return res.status(500).json({
-      message: "Algo salio mal",
+      message: "Algo salió mal al eliminar la película",
     });
   }
 };
 
+
 export const updatePelicula = async (req, res) => {
   try {
     const { id } = req.params;
-    const { strNombre, strSinopsis, intDuracion, idEstadoPelicula, generos } = req.body;
+    const { strNombre, strSinopsis, intDuracion, idEstadoPelicula, generos,nombreArchivo } = req.body;
     const { imagen } = req.body;
     if(imagen === 'no'){
       const [confirmar] = await pool.query("SELECT COUNT(*) as 'Existen' FROM peli_peliculas WHERE (strNombre = ?) AND id != ?", [strNombre, id])
@@ -313,9 +330,25 @@ export const updatePelicula = async (req, res) => {
     const [confirmar2] = await pool.query("SELECT COUNT(*) as 'Existen' FROM peli_peliculas WHERE (strNombre = ?) AND id != ?", [strNombre, id])
     console.log('imagen cambiada')
     if(confirmar2[0].Existen == 0){
+
+
+      const [imageResult] = await pool.query("SELECT nombreArchivo FROM peli_peliculas WHERE id = ?", [
+        id,
+      ]);
+  
+      if (imageResult && imageResult.length > 0 && imageResult[0].nombreArchivo) {
+        const imagePath = `uploads/${imageResult[0].nombreArchivo}`;
+  
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+        }
+      }
+
+
       const imageData = fs.readFileSync(req.file.path);
     const imageBuffer = Buffer.from(imageData);
-        const [result] = await pool.query('UPDATE peli_peliculas SET strNombre = ?, strSinopsis = ?, intDuracion = ?, bloImagen = ?, idEstadoPelicula = ? WHERE id = ?', [strNombre, strSinopsis, intDuracion, imageBuffer, idEstadoPelicula, id]);
+
+        const [result] = await pool.query('UPDATE peli_peliculas SET strNombre = ?, strSinopsis = ?, intDuracion = ?, bloImagen = ?, nombreArchivo = ?, idEstadoPelicula = ? WHERE id = ?', [strNombre, strSinopsis, intDuracion, imageBuffer, nombreArchivo, idEstadoPelicula, id]);
         const [removeGenres] = await pool.query('DELETE FROM peli_generos WHERE idPelicula = ?', [id])
         for (const idGenero of generos) {
           await pool.query('INSERT INTO peli_generos (idPelicula, idGeneroPelicula) VALUES (?, ?)', [id, idGenero]);
@@ -325,6 +358,7 @@ export const updatePelicula = async (req, res) => {
     return res.status(500).json({message: "La película ya esta registrada"});
   }
   } 
+
 }catch (error) {
     res.status(500).json({ message: 'Error al insertar la película' });
     console.error(error);
