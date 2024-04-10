@@ -304,7 +304,6 @@ export const deletePelicula = async (req, res) => {
   }
 };
 
-
 export const updatePelicula = async (req, res) => {
   try {
     const { id } = req.params;
@@ -362,5 +361,151 @@ export const updatePelicula = async (req, res) => {
 }catch (error) {
     res.status(500).json({ message: 'Error al insertar la película' });
     console.error(error);
+  }
+};
+
+export const getPeliculasDisponibles = async (req, res) => {
+  try {
+    // Consulta para obtener todos los registros de películas con sus detalles
+    const query = `
+        SELECT
+            id,
+            strNombre,
+            bloImagen, 
+            intDuracion
+        FROM
+            peli_peliculas
+        WHERE
+            idEstadoPelicula = 1;
+    `;
+    
+    // Ejecutar la consulta
+    const [result] = await pool.query(query);
+    
+    const peliculas = result.map(pelicula => {
+        return {
+            id: pelicula.id,
+            strNombre: pelicula.strNombre,
+            bloImagen: Buffer.from(pelicula.bloImagen).toString('base64'),
+            intDuracion: pelicula.intDuracion,
+        };
+    });
+    
+    res.json(peliculas);
+
+} catch (error) {
+    console.error('Error al obtener las películas:', error);
+    res.status(500).send('Error interno del servidor');
+}
+};
+
+export const publicarPelicula = async (req, res) => {
+  try {
+    
+    const { fechaInicio, fechaFin, curPrecio, idPelicula,sala1,sala2,sala3, horarios1, horarios2, horarios3 } = req.body;
+
+    const [result] = await pool.query('SELECT COUNT(*) AS cantidad_registros FROM sub_peliculas WHERE idPelicula = ? AND ? BETWEEN fechaInicio AND fechaFin', [idPelicula, fechaInicio])
+
+    if(result[0].cantidad_registros == 0){
+  const [result] = await pool.query('INSERT INTO sub_peliculas(fechaInicio, fechaFin, curPrecio, idPelicula) VALUES (?,?,?,?)', [fechaInicio, fechaFin, curPrecio, idPelicula]);
+          console[result];
+          let idUpdate = result.insertId;
+          for (const horario of horarios1) {
+            await pool.query('INSERT INTO sub_horario (horario, idSala, idCartelera) VALUES (?, ?, ?)', [horario,sala1, idUpdate]);
+          }
+          if(sala2 != 0){
+            for (const horario of horarios2) {
+              await pool.query('INSERT INTO sub_horario (horario, idSala, idCartelera) VALUES (?, ?, ?)', [horario,sala2, idUpdate]);
+            }
+          }
+          if(sala3 != 0){
+            for (const horario of horarios3) {
+              await pool.query('INSERT INTO sub_horario (horario, idSala, idCartelera) VALUES (?, ?, ?)', [horario,sala3, idUpdate]);
+            }
+          }
+res.status(200).json({ message: 'listo' });
+}else{
+  res.status(404).json({ message: 'En estreno' });
+}
+      
+}catch (error) {
+    res.status(500).json({ message: 'Error al insertar la película' });
+    console.error(error);
+  }
+};
+
+export const getPeliculasPublicadas = async (req, res) => {
+  try {
+    // Consulta para obtener los datos requeridos de las películas, fechas de inicio y fin, horarios y salas
+    const query = `
+    SELECT
+    sub_peliculas.id AS idSubPelicula,
+    peli_peliculas.strNombre,
+    peli_peliculas.id as idPelicula,
+    sub_peliculas.curPrecio,
+    peli_peliculas.intDuracion,
+    peli_peliculas.bloImagen,
+    DATE_FORMAT(sub_peliculas.fechaInicio, '%Y-%m-%d') AS fechaInicio,
+    DATE_FORMAT(sub_peliculas.fechaFin, '%Y-%m-%d') AS fechaFin,
+    GROUP_CONCAT(sub_horario.horario) AS horarios,
+    GROUP_CONCAT(sub_horario.idSala) AS idsSala,
+    GROUP_CONCAT(sal_cat_sala.intNumeroAsientos) AS numeroAsientos
+FROM
+    peli_peliculas
+    INNER JOIN sub_peliculas ON peli_peliculas.id = sub_peliculas.idPelicula
+    INNER JOIN sub_horario ON sub_peliculas.id = sub_horario.idCartelera
+    INNER JOIN sal_cat_sala ON sub_horario.idSala = sal_cat_sala.id
+GROUP BY
+    sub_peliculas.id;
+    `;
+    
+    // Ejecutar la consulta
+    const [result] = await pool.query(query);
+    
+    // Mapear los resultados para formatearlos según la estructura deseada
+    const peliculas = result.map(pelicula => {
+        return {
+          id: pelicula.id,
+            strNombre: pelicula.strNombre,
+            idPelicula: pelicula.idPelicula,
+            intDuracion: pelicula.intDuracion,
+            precio: pelicula.curPrecio,
+            intAsientos: pelicula.numeroAsientos,
+            bloImagen: Buffer.from(pelicula.bloImagen).toString('base64'), // Convertir la imagen a base64
+            fechaInicio: pelicula.fechaInicio,
+            fechaFin: pelicula.fechaFin,
+            horarios: pelicula.horarios ? pelicula.horarios.split(',') : [],
+            idsSala: pelicula.idsSala ? pelicula.idsSala.split(',') : []
+        };
+    });
+    
+    // Enviar la respuesta con los datos de las películas
+    res.json(peliculas);
+
+  } catch (error) {
+    console.error('Error al obtener las películas:', error);
+    res.status(500).send('Error interno del servidor');
+  }
+};
+
+export const deletePeliculaPublicada = async (req, res) => {
+  try {
+    const [result] = await pool.query("delete from sub_peliculas where id = ?", [req.params.id,]);
+
+    if (result.affectedRows <= 0) {
+      return res.status(404).json({
+        message: "No se encontró la película",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Se elimino correctamente",
+    });  
+  
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Algo salió mal al eliminar la película",
+    });
   }
 };

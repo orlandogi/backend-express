@@ -1,5 +1,8 @@
 import { Router } from "express";
-import {getUsuarios,getUsuario, postUsuarios, updateUsuarios,deleteUsuarios, getDescripcionUsuario, postPelicula, getPelicula, getGenero, getPeliculas, deletePelicula, updatePelicula } from "../controllers/usuarios.controller.js";
+import {getUsuarios,getUsuario, postUsuarios, updateUsuarios,deleteUsuarios, getDescripcionUsuario, 
+  postPelicula, getPelicula, getGenero, getPeliculas, deletePelicula, updatePelicula, getPeliculasDisponibles, 
+  publicarPelicula, getPeliculasPublicadas, deletePeliculaPublicada } 
+  from "../controllers/usuarios.controller.js";
 import multer from 'multer';
 
 const storage = multer.diskStorage({
@@ -38,5 +41,14 @@ router.get('/genero', getGenero);
 router.delete('/pelicula/:id', deletePelicula)
 
 router.put('/pelicula/:id',upload.single('imagen'), updatePelicula)
+
+router.get('/peliculasDisponibles', getPeliculasDisponibles)
+
+router.post('/uploadMovie', publicarPelicula)
+
+router.get('/uploadMovies', getPeliculasPublicadas)
+
+router.delete('/uploadMovie/:id', deletePeliculaPublicada)
+
 
 export default router;
