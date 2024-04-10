@@ -500,7 +500,7 @@ export const deletePeliculaPublicada = async (req, res) => {
     }
 
     return res.status(200).json({
-      message: "Se elimino correctamente",
+      message: "Se elimino correctamente.",
     });  
   
   } catch (error) {
