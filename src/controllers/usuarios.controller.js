@@ -158,7 +158,7 @@ export const postPelicula = async (req, res) => {
     const imageData = fs.readFileSync(req.file.path);
     const imageBuffer = Buffer.from(imageData);
 
-    const [result1] = await pool.query('SELECT strNombre FROM peli_peliculas where strNombre = ?', [strNombre]);
+    const [result1] = await pool.query('SELECT strNombre FROM peli_peliculas where strNombre = ?', [strNombre]) ;
     if(result1.length == 0){
       const [result] = await pool.query('INSERT INTO peli_peliculas (strNombre, strSinopsis, intDuracion, bloImagen, nombreArchivo, idEstadoPelicula) VALUES (?, ?, ?, ?, ?, ?)', [strNombre, strSinopsis, intDuracion, imageBuffer, nombreArchivo, idEstadoPelicula]);
 
