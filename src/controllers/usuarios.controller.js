@@ -494,9 +494,9 @@ export const deletePeliculaPublicada = async (req, res) => {
 
     if (result.affectedRows <= 0) {
       return res.status(404).json({
-        message: "No se encontró la película",
+        message: "No se encontró la película.",
       });
-      
+
     }
 
     return res.status(200).json({

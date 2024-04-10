@@ -48,7 +48,7 @@ router.post('/uploadMovie', publicarPelicula)
 
 router.get('/uploadMovies', getPeliculasPublicadas)
 
-router.delete('/uploadMovie/:id', deletePeliculaPublicada )
+router.delete('/uploadMovie/:id', deletePeliculaPublicada)
 
 
 export default router;
