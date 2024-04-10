@@ -465,7 +465,7 @@ GROUP BY
     // Mapear los resultados para formatearlos según la estructura deseada
     const peliculas = result.map(pelicula => {
         return {
-          id: pelicula.id,
+          id: pelicula.idSubPelicula,
             strNombre: pelicula.strNombre,
             idPelicula: pelicula.idPelicula,
             intDuracion: pelicula.intDuracion,
