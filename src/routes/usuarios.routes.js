@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {getUsuarios,getUsuario, postUsuarios, updateUsuarios,deleteUsuarios, getDescripcionUsuario, 
-  postPelicula, getPelicula, getGenero, getPeliculas, deletePelicula, updatePelicula, getPeliculasDisponibles, 
-  publicarPelicula, getPeliculasPublicadas, deletePeliculaPublicada } 
+  postPelicula, getPelicula, getGenero, getPeliculas, deletePelicula, updatePelicula, 
+  getPeliculasDisponibles, publicarPelicula, getPeliculasPublicadas, deletePeliculaPublicada } 
   from "../controllers/usuarios.controller.js";
 import multer from 'multer';
 

@@ -376,7 +376,7 @@ export const getPeliculasDisponibles = async (req, res) => {
         FROM
             peli_peliculas
         WHERE
-            idEstadoPelicula = 1;
+             idEstadoPelicula = 1;
     `;
     
     // Ejecutar la consulta
