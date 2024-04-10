@@ -496,6 +496,7 @@ export const deletePeliculaPublicada = async (req, res) => {
       return res.status(404).json({
         message: "No se encontró la película",
       });
+      
     }
 
     return res.status(200).json({
