@@ -169,7 +169,7 @@ export const postPelicula = async (req, res) => {
       }
       res.status(200).json({ message: 'Película insertada exitosamente' });
     } else {
-      return res.status(500).json({ message: 'Error al insertar la película' });
+      return res.status(500).json({ message: 'Error al insertar la película.' });
     }
 
   } catch (error) {

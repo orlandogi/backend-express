@@ -32,7 +32,7 @@ router.delete('/usuario/:id', deleteUsuarios)
 
 router.get('/peliculas', getPeliculas)
 
-router.post('/pelicula', upload.single('imagen'), postPelicula );
+router.post('/pelicula', upload.single('imagen'), postPelicula);
 
 router.get('/pelicula/:id', getPelicula);
 
