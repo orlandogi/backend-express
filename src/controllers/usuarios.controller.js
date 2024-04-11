@@ -543,7 +543,8 @@ export const getTickets = async (req, res) => {
     boletosNiños as niños,
     totalBoletos as boletos,
     curTotal as total, 
-    asientos 
+    asientos,
+    precio
     FROM 
     tick_ticket;
     `;
@@ -566,6 +567,7 @@ export const getTickets = async (req, res) => {
             sala: pelicula.sala,
             total: pelicula.total,
             asientos: pelicula.asientos,
+            precio: pelicula.precio
         };
     });
     
