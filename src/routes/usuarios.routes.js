@@ -57,6 +57,6 @@ router.get('/tickets', getTickets)
 
 router.delete('/ticket/:id', deleteTickets)
 
-router.put('/ticket/:id', updatePelicula)
+router.put('/ticket/:id', updateTicket)
 
 export default router;
