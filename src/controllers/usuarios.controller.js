@@ -510,3 +510,91 @@ export const deletePeliculaPublicada = async (req, res) => {
     });
   }
 };
+
+export const postTicket = async (req, res) => {
+  try {
+    const { dteFechaCompra, strFolio, pelicula, idSala, horario, strNombreCliente, boletosAdultos,   boletosNiños, totalBoletos, curTotal, idUsuario, asientos } = req.body;
+
+      const [result] = await pool.query('INSERT INTO tick_ticket(dteFechaCompra,strFolio,pelicula,idSala,horario,strNombreCliente,boletosAdultos,boletosNiños,totalBoletos,curTotal,asientos, idUsuario)  VALUES (?, ?, ?, ?, ?, ?,?,?,?,?,?,?)', 
+      [dteFechaCompra, strFolio, pelicula, idSala, horario, strNombreCliente, boletosAdultos,
+        boletosNiños, totalBoletos, curTotal, asientos,1]);
+
+      res.status(200).json({ message: 'Película insertada exitosamente' });
+ 
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error interno del servidor' });
+  }
+};
+
+export const getTickets = async (req, res) => {
+  try {
+    // Consulta para obtener todos los registros de películas con sus detalles
+    const query = `
+    SELECT 
+    id,
+    DATE_FORMAT(dteFechaCompra, '%Y-%m-%d') as fecha, 
+    strFolio as folio, pelicula, 
+    idSala as sala, 
+    horario, 
+    strNombreCliente as cliente, 
+    boletosAdultos as adultos, 
+    boletosNiños as niños,
+    totalBoletos as boletos,
+    curTotal as total, 
+    asientos 
+    FROM 
+    tick_ticket;
+    `;
+    
+    // Ejecutar la consulta
+    const [result] = await pool.query(query);
+    
+    const peliculas = result.map(pelicula => {
+        return {
+            id: pelicula.id,
+            fecha: pelicula.fecha,
+            pelicula: pelicula.pelicula,
+            sala: pelicula.sala,
+            horario: pelicula.horario,
+            cliente: pelicula.cliente,
+            adultos: pelicula.adultos,
+            niños: pelicula.niños,
+            boletos: pelicula.boletos,
+            sala: pelicula.sala,
+            total: pelicula.total,
+            asientos: pelicula.asientos,
+        };
+    });
+    
+    // Enviar la respuesta con los datos de las películas
+    res.json(peliculas);
+
+} catch (error) {
+    console.error('Error al obtener las películas:', error);
+    res.status(500).send('Error interno del servidor');
+}
+};
+
+export const deleteTickets = async (req, res) => {
+  try {
+    const [result] = await pool.query("delete from tick_ticket where id = ?", [req.params.id,]);
+
+    if (result.affectedRows <= 0) {
+      return res.status(404).json({
+        message: "No se encontró la película.",
+      });
+
+    }
+
+    return res.status(200).json({
+      message: "Se elimino correctamente.",
+    });  
+  
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Algo salió mal al eliminar la película",
+    });
+  }
+};

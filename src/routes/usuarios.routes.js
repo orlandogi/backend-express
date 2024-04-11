@@ -1,7 +1,8 @@
 import { Router } from "express";
 import {getUsuarios,getUsuario, postUsuarios, updateUsuarios,deleteUsuarios, getDescripcionUsuario, 
   postPelicula, getPelicula, getGenero, getPeliculas, deletePelicula, updatePelicula, 
-  getPeliculasDisponibles, publicarPelicula, getPeliculasPublicadas, deletePeliculaPublicada } 
+  getPeliculasDisponibles, publicarPelicula, getPeliculasPublicadas, deletePeliculaPublicada, postTicket,
+  getTickets, deleteTickets } 
   from "../controllers/usuarios.controller.js";
 import multer from 'multer';
 
@@ -50,5 +51,10 @@ router.get('/uploadMovies', getPeliculasPublicadas)
 
 router.delete('/uploadMoviePublish/:id', deletePeliculaPublicada)
 
+router.post('/ticket', postTicket)
+
+router.get('/tickets', getTickets)
+
+router.delete('/ticket/:id', deleteTickets)
 
 export default router;
