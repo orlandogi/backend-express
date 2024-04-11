@@ -534,7 +534,8 @@ export const getTickets = async (req, res) => {
     SELECT 
     id,
     DATE_FORMAT(dteFechaCompra, '%Y-%m-%d') as fecha, 
-    strFolio as folio, pelicula, 
+    strFolio as folio, 
+    pelicula, 
     idSala as sala, 
     horario, 
     strNombreCliente as cliente, 
@@ -553,6 +554,7 @@ export const getTickets = async (req, res) => {
     const peliculas = result.map(pelicula => {
         return {
             id: pelicula.id,
+            folio: pelicula.folio,
             fecha: pelicula.fecha,
             pelicula: pelicula.pelicula,
             sala: pelicula.sala,
