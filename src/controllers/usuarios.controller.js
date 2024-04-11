@@ -513,11 +513,11 @@ export const deletePeliculaPublicada = async (req, res) => {
 
 export const postTicket = async (req, res) => {
   try {
-    const { dteFechaCompra, strFolio, pelicula, idSala, horario, strNombreCliente, boletosAdultos,   boletosNiños, totalBoletos, curTotal, idUsuario, asientos } = req.body;
+    const { dteFechaCompra, strFolio, pelicula, idSala, horario, strNombreCliente, boletosAdultos,   boletosNiños, totalBoletos, curTotal, idUsuario, asientos, precio } = req.body;
 
-      const [result] = await pool.query('INSERT INTO tick_ticket(dteFechaCompra,strFolio,pelicula,idSala,horario,strNombreCliente,boletosAdultos,boletosNiños,totalBoletos,curTotal,asientos, idUsuario)  VALUES (?, ?, ?, ?, ?, ?,?,?,?,?,?,?)', 
+      const [result] = await pool.query('INSERT INTO tick_ticket(dteFechaCompra,strFolio,pelicula,idSala,horario,strNombreCliente,boletosAdultos,boletosNiños,totalBoletos,curTotal,asientos, idUsuario, precio)  VALUES (?, ?, ?, ?, ?, ?,?, ?,?,?,?,?,?)', 
       [dteFechaCompra, strFolio, pelicula, idSala, horario, strNombreCliente, boletosAdultos,
-        boletosNiños, totalBoletos, curTotal, asientos,1]);
+        boletosNiños, totalBoletos, curTotal, asientos,1, precio]);
 
       res.status(200).json({ message: 'Película insertada exitosamente' });
  
