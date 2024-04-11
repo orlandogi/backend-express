@@ -605,9 +605,9 @@ export const deleteTickets = async (req, res) => {
 
 export const updateTicket = async (req, res) => {
   try {
-    const { fecha, folio, sala,horario, nombre,adultos, niños, boletos,total,asientos, id } = req.body;
+    const { fecha, folio, pelicula, sala,horario, nombre,adultos, niños, boletos,total,asientos, id } = req.body;
 
-          const [result] = await pool.query('update tick_ticket set dteFechaCompra = ?, strFolio = ?, idSala = ?, horario = ?, strNombreCliente = ?, boletosAdultos = ?, boletosNiños = ?, totalBoletos = ?, curTotal = ?, asientos = ? where id = ?;', [fecha, folio, sala,horario, nombre,adultos, niños, boletos,total,asientos, id]);
+          const [result] = await pool.query('update tick_ticket set dteFechaCompra = ?, strFolio = ?, pelicula = ?,idSala = ?, horario = ?, strNombreCliente = ?, boletosAdultos = ?, boletosNiños = ?, totalBoletos = ?, curTotal = ?, asientos = ? where id = ?;', [fecha, folio,pelicula, sala,horario, nombre,adultos, niños, boletos,total,asientos, id]);
         
          return res.status(200).json({ message: 'Película actualizada exitosamente' });      
   
