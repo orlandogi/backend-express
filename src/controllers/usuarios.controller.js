@@ -451,15 +451,12 @@ export const getPeliculasPublicadas = async (req, res) => {
     DATE_FORMAT(sub_peliculas.fechaFin, '%Y-%m-%d') AS fechaFin,
     GROUP_CONCAT(sub_horario.horario) AS horarios,
     GROUP_CONCAT(sub_horario.idSala) AS idsSala,
-    GROUP_CONCAT(sal_cat_sala.intNumeroAsientos) AS numeroAsientos,
-    GROUP_CONCAT(peli_cat_genero.strGenero) AS generos
-
+    GROUP_CONCAT(sal_cat_sala.intNumeroAsientos) AS numeroAsientos
 FROM
     peli_peliculas
     INNER JOIN sub_peliculas ON peli_peliculas.id = sub_peliculas.idPelicula
     INNER JOIN sub_horario ON sub_peliculas.id = sub_horario.idCartelera
     INNER JOIN sal_cat_sala ON sub_horario.idSala = sal_cat_sala.id
-    LEFT JOIN peli_generos ON peli_peliculas.id = peli_generos.idPelicula
 GROUP BY
     sub_peliculas.id;
     `;
@@ -480,8 +477,7 @@ GROUP BY
             fechaInicio: pelicula.fechaInicio,
             fechaFin: pelicula.fechaFin,
             horarios: pelicula.horarios ? pelicula.horarios.split(',') : [],
-            idsSala: pelicula.idsSala ? pelicula.idsSala.split(',') : [],
-            generos: pelicula.generos ? pelicula.generos.split(',') : []
+            idsSala: pelicula.idsSala ? pelicula.idsSala.split(',') : []
         };
     });
     
