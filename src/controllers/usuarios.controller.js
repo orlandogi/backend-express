@@ -451,7 +451,7 @@ export const getPeliculasPublicadas = async (req, res) => {
     DATE_FORMAT(sub_peliculas.fechaFin, '%Y-%m-%d') AS fechaFin,
     GROUP_CONCAT(sub_horario.horario) AS horarios,
     GROUP_CONCAT(sub_horario.idSala) AS idsSala,
-    GROUP_CONCAT(sal_cat_sala.intNumeroAsientos) AS numeroAsientos
+    GROUP_CONCAT(sal_cat_sala.intNumeroAsientos) AS numeroAsientos,
     GROUP_CONCAT(peli_cat_genero.strGenero) AS generos
 
 FROM
