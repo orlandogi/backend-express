@@ -3,6 +3,8 @@ import multer from 'multer';
 import fs from 'fs'; 
 import path from 'path';
 import { fileURLToPath } from 'url';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -450,11 +452,14 @@ export const getPeliculasPublicadas = async (req, res) => {
     GROUP_CONCAT(sub_horario.horario) AS horarios,
     GROUP_CONCAT(sub_horario.idSala) AS idsSala,
     GROUP_CONCAT(sal_cat_sala.intNumeroAsientos) AS numeroAsientos
+    GROUP_CONCAT(peli_cat_genero.strGenero) AS generos
+
 FROM
     peli_peliculas
     INNER JOIN sub_peliculas ON peli_peliculas.id = sub_peliculas.idPelicula
     INNER JOIN sub_horario ON sub_peliculas.id = sub_horario.idCartelera
     INNER JOIN sal_cat_sala ON sub_horario.idSala = sal_cat_sala.id
+    LEFT JOIN peli_generos ON peli_peliculas.id = peli_generos.idPelicula
 GROUP BY
     sub_peliculas.id;
     `;
@@ -475,7 +480,8 @@ GROUP BY
             fechaInicio: pelicula.fechaInicio,
             fechaFin: pelicula.fechaFin,
             horarios: pelicula.horarios ? pelicula.horarios.split(',') : [],
-            idsSala: pelicula.idsSala ? pelicula.idsSala.split(',') : []
+            idsSala: pelicula.idsSala ? pelicula.idsSala.split(',') : [],
+            generos: pelicula.generos ? pelicula.generos.split(',') : []
         };
     });
     
@@ -615,5 +621,33 @@ export const updateTicket = async (req, res) => {
 }catch (error) {
     res.status(500).json({ message: 'Error al insertar la película' });
     console.error(error);
+  }
+};
+
+export const login = async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    // Busca el usuario en la base de datos por su nombre de usuario
+    const [user] = await pool.query('SELECT * FROM usu_usuario WHERE strNombreUsuario = ? and strContraseña = ?', [username, password]);
+    if (!user || user.length === 0) {
+      return res.status(401).json({ error: 'Nombre de usuario incorrecto' });
+    }
+    // Verifica si el usuario está activo
+    if (user[0].idTipoEstado !== 1) {
+      return res.status(401).json({ error: 'El usuario no está activo' });
+    }
+
+    // Genera un token de sesión
+    const token = jwt.sign({
+      userId: user[0].id,
+      username: user[0].strNombreUsuario,
+      userType: user[0].idTipoUsuario
+    }, 'your_secret_key', { expiresIn: '1h' });
+
+    // Devuelve el token de sesión
+    res.json([user[0], {token}])
+  } catch (error) {
+    console.error('Error en la autenticación:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
